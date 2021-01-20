@@ -5,6 +5,8 @@ import com.calc.enums.RomanDigit;
 import com.calc.enums.TypeDigit;
 import com.calc.exeptions.LineIsNotIllegalException;
 
+import java.util.List;
+
 public class Parser {
 
     /**
@@ -40,7 +42,6 @@ public class Parser {
         return parseRoman(line, start, stop);
     }
 
-    // TODO: check
     /**
      * Получить int из римской цифры
      * @param line строка с римской цифрой
@@ -51,41 +52,25 @@ public class Parser {
      */
     private int parseRoman(String line, int start, int stop) throws LineIsNotIllegalException {
 
-        final int repeatMax = 3;
+//        final int repeatMax = 3;
+        String romanNumeral = line.substring(start, stop);
         int result = 0;
-        int repeat = 1;
-        int previousDigit;
-        int currentDigit = 0;
-        int repeatedArg;
+        int i = 0;
+        List<RomanDigit> romanNumerals = RomanDigit.getRevSortValues();
 
-        for (int i = start; i < stop; i++) {
-            previousDigit = currentDigit;
-            currentDigit = RomanDigit.valueOf(String.valueOf(line.charAt(i))).getInt();
-
-            if (previousDigit == currentDigit) {
-                repeat++;
-            }
-            else {
-                repeatedArg = previousDigit * repeat;
-                repeat = 1;
-
-                if (previousDigit < currentDigit) {
-//                    currentDigit -= repeatedArg;
-                    result = currentDigit - repeatedArg;
-                } else {
-                    result += previousDigit;
-                }
-            }
-
-            if (repeatMax < repeat) throw new LineIsNotIllegalException("Incorrect number notation!");
-
-            if (previousDigit >= currentDigit) {
-                result += currentDigit;
+        while ((romanNumeral.length() > 0) && (i < romanNumerals.size())) {
+            RomanDigit symbol = romanNumerals.get(i);
+            if (romanNumeral.startsWith(symbol.name())) {
+                result += symbol.getInt();
+                romanNumeral = romanNumeral.substring(symbol.name().length());
+            } else {
+                i++;
             }
         }
 
-        if (result > 10 || result < 1)
-            throw new LineIsNotIllegalException("The number must be between 1 and 10!");
+        if (romanNumeral.length() > 0) {
+            throw new IllegalArgumentException(line + " cannot be converted to a Roman Numeral");
+        }
 
         return result;
     }
@@ -93,8 +78,12 @@ public class Parser {
     private int parseArabic(String line, int start, int stop) throws LineIsNotIllegalException, NumberFormatException {
         int result = 0;
 
-        for (int i = start; i < stop; i++)
-            result = result * (10 ^ i) + Integer.parseInt(String.valueOf(line.charAt(i)));
+        for (int i = start; i < stop; i++) {
+            int digit = Integer.parseInt(String.valueOf(line.charAt(i)));
+            int offset = (i > 0) ? 10 : 1;
+            result *= offset;
+            result += digit;
+        }
 
         if (result > 10 || result < 1)
             throw new LineIsNotIllegalException("The number must be between 1 and 10!");
@@ -110,7 +99,7 @@ public class Parser {
                 throw new LineIsNotIllegalException();
 
             if (isOperator(ch))
-                operator = Operator.valueOf(String.valueOf(ch));
+                operator = Operator.getOperator(ch);
         }
 
         if (operator == null)
@@ -125,7 +114,7 @@ public class Parser {
 
         for (char ch : line.toCharArray()) {
             if (isDigit(ch))
-                localTypeDigit = TypeDigit.valueOf(String.valueOf(ch));
+                localTypeDigit = (isRomanDigit(ch)) ? TypeDigit.ROMAN : TypeDigit.ARABIC;
             else continue;
 
             if (typeDigit == null)
@@ -150,13 +139,12 @@ public class Parser {
     private boolean isOperator(char ch) {
         String chString = String.valueOf(ch);
 
-        try {
-            Operator.valueOf(chString);
-        } catch (IllegalArgumentException illegalArgumentException) {
-            return false;
+        for (Operator operator : Operator.values()) {
+            if (String.valueOf(operator.getOperatorChar()).equals(chString))
+                return true;
         }
 
-        return true;
+        return false;
     }
 
     private boolean isIntegerDigit(char ch) {
@@ -174,13 +162,12 @@ public class Parser {
     private boolean isRomanDigit(char ch) {
         String chString = String.valueOf(ch);
 
-        try {
-            RomanDigit.valueOf(chString);
-        } catch (IllegalArgumentException illegalArgumentException) {
-            return false;
+        for (RomanDigit rd :
+                RomanDigit.values()) {
+            if (rd.name().equals(chString)) return true;
         }
 
-        return true;
+        return false;
     }
 
     private boolean isDigit(char ch) {

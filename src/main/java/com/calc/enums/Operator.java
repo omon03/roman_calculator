@@ -20,4 +20,13 @@ public enum Operator {
     public String toString() {
         return String.valueOf(getOperatorChar());
     }
+
+    public static Operator getOperator(char ch) {
+        for (Operator operator :
+                Operator.values()) {
+            if (operator.getOperatorChar() == ch) return operator;
+        }
+
+        throw new IllegalArgumentException();
+    }
 }

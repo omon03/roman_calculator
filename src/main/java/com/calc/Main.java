@@ -6,6 +6,7 @@ import com.calc.exeptions.LineIsNotIllegalException;
 import java.io.IOException;
 import java.lang.annotation.Retention;
 import java.util.Arrays;
+import java.util.List;
 
 public class Main {
 
@@ -81,46 +82,34 @@ public class Main {
     private static void printResult(int result, TypeDigit typeDigit) {
 
         if (typeDigit.equals(TypeDigit.ARABIC)) {
-            System.out.println(result);
+            System.out.println("Ответ: " + result);
             return;
         }
 
-        System.out.println(getRomanString(result));
+        System.out.println("Ответ: " + getRomanString(result));
     }
     
-    // TODO убрать ночной хард-код
     private static String getRomanString(int romanInt) {
 
-        StringBuffer result = new StringBuffer();
-        int num = romanInt;
-        RomanDigit[] romanDigits = RomanDigit.values();
-
-        for (int i = romanDigits.length - 1; i >= 0; i--) {
-
+        if ((romanInt <= 0) || (romanInt > 4000)) {
+            throw new IllegalArgumentException(romanInt + " выходит за предел римских чисел.");
         }
 
-        for (int i = 0; i < romanInt / RomanDigit.M.getInt(); i++) {
-            result.insert(result.length(), RomanDigit.M.getChar());
-        }
-        for (int i = 0; i < romanInt / RomanDigit.D.getInt(); i++) {
-            result.insert(result.length(), RomanDigit.D.getChar());
-        }
-        for (int i = 0; i < romanInt / RomanDigit.C.getInt(); i++) {
-            result.insert(result.length(), RomanDigit.C.getChar());
-        }
-        for (int i = 0; i < romanInt / RomanDigit.L.getInt(); i++) {
-            result.insert(result.length(), RomanDigit.L.getChar());
-        }
-        for (int i = 0; i < romanInt / RomanDigit.X.getInt(); i++) {
-            result.insert(result.length(), RomanDigit.X.getChar());
-        }
-        for (int i = 0; i < romanInt / RomanDigit.V.getInt(); i++) {
-            result.insert(result.length(), RomanDigit.V.getChar());
-        }
-        for (int i = 0; i < romanInt / RomanDigit.I.getInt(); i++) {
-            result.insert(result.length(), RomanDigit.I.getChar());
+        List<RomanDigit> romanNumerals = RomanDigit.getRevSortValues();
+
+        int i = 0;
+        StringBuilder sb = new StringBuilder();
+
+        while ((romanInt > 0) && (i < romanNumerals.size())) {
+            RomanDigit currentSymbol = romanNumerals.get(i);
+            if (currentSymbol.getInt() <= romanInt) {
+                sb.append(currentSymbol.name());
+                romanInt -= currentSymbol.getInt();
+            } else {
+                i++;
+            }
         }
 
-        return result;
+        return sb.toString();
     }
 }
